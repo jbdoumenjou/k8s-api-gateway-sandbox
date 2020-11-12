@@ -1,0 +1,9 @@
+manifests/
+output/
+.idea/
+.intellij/
+*.iml
+.vscode/
+.DS_Store
+/dist
+*.log

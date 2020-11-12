@@ -1,0 +1,23 @@
+---
+kind: Gateway
+apiVersion: networking.x-k8s.io/v1alpha1
+metadata:
+  name: my-gateway-listener-https-bad-cert-kind
+  namespace: default
+spec:
+  gatewayClassName: my-gateway-class
+  listeners:
+    - protocol: HTTPS
+      tls:
+        certificateRef:
+          group: "core"
+          kind: "Secret-bad"
+          name: "Unknown"
+      port: 8000
+      routes:
+        kind: HTTPRoute
+        namespaces:
+          from: Same
+        selector:
+          matchLabels:
+            app: foo

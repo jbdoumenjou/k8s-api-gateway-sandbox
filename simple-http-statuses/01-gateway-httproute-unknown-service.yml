@@ -1,0 +1,60 @@
+---
+kind: Gateway
+apiVersion: networking.x-k8s.io/v1alpha1
+metadata:
+  name: my-gateway-httproute-unknown-service
+  namespace: default
+spec:
+  gatewayClassName: my-gateway-class
+  listeners:
+    - protocol: HTTP
+      port: 80
+      routes:
+        kind: HTTPRoute
+        namespaces:
+          from: Same
+        selector:
+          matchLabels:
+            app: unknown-service
+
+---
+kind: HTTPRoute
+apiVersion: networking.x-k8s.io/v1alpha1
+metadata:
+  name: unknown-service-httproute
+  namespace: default
+  labels:
+    app: unknown-service
+spec:
+  hostnames:
+    - "whoami"
+  rules:
+    - matches:
+        - path:
+            type: Exact
+            value: /bar
+      forwardTo:
+        - serviceName: unknown
+          port: 80
+          weight: 1
+
+---
+kind: HTTPRoute
+apiVersion: networking.x-k8s.io/v1alpha1
+metadata:
+  name: unknown-service-httproute2
+  namespace: default
+  labels:
+    app: unknown-service
+spec:
+  hostnames:
+    - "whoami"
+  rules:
+    - matches:
+        - path:
+            type: Exact
+            value: /bar
+      forwardTo:
+        - serviceName: unknown
+          port: 80
+          weight: 1
