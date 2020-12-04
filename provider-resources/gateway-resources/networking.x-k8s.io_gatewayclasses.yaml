@@ -6,22 +6,26 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.4.0
   creationTimestamp: null
-  name: backendpolicies.networking.x-k8s.io
+  name: gatewayclasses.networking.x-k8s.io
 spec:
   group: networking.x-k8s.io
   names:
-    kind: BackendPolicy
-    listKind: BackendPolicyList
-    plural: backendpolicies
+    kind: GatewayClass
+    listKind: GatewayClassList
+    plural: gatewayclasses
     shortNames:
-    - bp
-    singular: backendpolicy
-  scope: Namespaced
+    - gc
+    singular: gatewayclass
+  scope: Cluster
   versions:
-  - name: v1alpha1
+  - additionalPrinterColumns:
+    - jsonPath: .spec.controller
+      name: Controller
+      type: string
+    name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: BackendPolicy defines policies associated with backends. For the purpose of this API, a backend is defined as any resource that a route can forward traffic to. A common example of a backend is a Service. Configuration that is implementation specific may be represented with similar implementation specific custom resources.
+        description: "GatewayClass describes a class of Gateways available to the user for creating Gateway resources. \n GatewayClass is a Cluster level resource. \n Support: Core."
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
@@ -32,77 +36,56 @@ spec:
           metadata:
             type: object
           spec:
-            description: BackendPolicySpec defines desired policy for a backend.
+            description: Spec for this GatewayClass.
             properties:
-              backendRefs:
-                description: "BackendRefs define which backends this policy should be applied to. This policy can only apply to backends within the same namespace. If more than one BackendPolicy targets the same backend, precedence must be given to the oldest BackendPolicy. \n Support: Core"
-                items:
-                  description: BackendRef identifies an API object within a known namespace that defaults group to core and resource to services if unspecified.
-                  properties:
-                    group:
-                      description: Group is the group of the referent.
-                      maxLength: 253
-                      type: string
-                    kind:
-                      description: Kind is the kind of the referent.
-                      maxLength: 253
-                      type: string
-                    name:
-                      description: Name is the name of the referent.
-                      maxLength: 253
-                      type: string
-                    port:
-                      description: Port is the port of the referent. If unspecified, this policy applies to all ports on the backend.
-                      format: int32
-                      maximum: 65535
-                      minimum: 1
-                      type: integer
-                  required:
-                  - group
-                  - name
-                  type: object
-                maxItems: 16
-                type: array
-              tls:
-                description: "TLS is the TLS configuration for these backends. \n Support: Extended"
+              controller:
+                description: "Controller is a domain/path string that indicates the controller that is managing Gateways of this class. \n Example: \"acme.io/gateway-controller\". \n This field is not mutable and cannot be empty. \n The format of this field is DOMAIN \"/\" PATH, where DOMAIN and PATH are valid Kubernetes names (https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names). \n Support: Core"
+                maxLength: 253
+                type: string
+              parametersRef:
+                description: "ParametersRef is a controller-specific resource containing the configuration parameters corresponding to this class. This is optional if the controller does not require any additional configuration. \n Parameters resources are implementation specific custom resources. These resources must be cluster-scoped. \n If the referent cannot be found, the GatewayClass's \"InvalidParameters\" status condition will be true. \n Support: Custom"
                 properties:
-                  certificateAuthorityRef:
-                    description: "CertificateAuthorityRef is a reference to a resource that includes trusted CA certificates for the associated backends. If an entry in this list omits or specifies the empty string for both the group and the resource, the resource defaults to \"secrets\". An implementation may support other resources (for example, resource \"mycertificates\" in group \"networking.acme.io\"). \n When stored in a Secret, certificates must be PEM encoded and specified within the \"ca.crt\" data field of the Secret. Multiple certificates can be specified, concatenated by new lines. \n Support: Extended"
-                    properties:
-                      group:
-                        description: Group is the group of the referent.
-                        maxLength: 253
-                        minLength: 1
-                        type: string
-                      kind:
-                        description: Kind is kind of the referent.
-                        maxLength: 253
-                        minLength: 1
-                        type: string
-                      name:
-                        description: Name is the name of the referent.
-                        maxLength: 253
-                        minLength: 1
-                        type: string
-                    required:
-                    - group
-                    - kind
-                    - name
-                    type: object
-                  options:
-                    additionalProperties:
-                      type: string
-                    description: "Options are a list of key/value pairs to give extended options to the provider. \n Support: Implementation-specific."
-                    type: object
+                  group:
+                    description: Group is the group of the referent.
+                    maxLength: 253
+                    minLength: 1
+                    type: string
+                  kind:
+                    description: Kind is kind of the referent.
+                    maxLength: 253
+                    minLength: 1
+                    type: string
+                  name:
+                    description: Name is the name of the referent.
+                    maxLength: 253
+                    minLength: 1
+                    type: string
+                required:
+                - group
+                - kind
+                - name
                 type: object
             required:
-            - backendRefs
+            - controller
             type: object
           status:
-            description: BackendPolicyStatus defines the observed state of BackendPolicy. Conditions that are related to a specific Route or Gateway should be placed on the Route(s) using backends configured by this BackendPolicy.
+            default:
+              conditions:
+              - lastTransitionTime: "1970-01-01T00:00:00Z"
+                message: Waiting for controller
+                reason: Waiting
+                status: "False"
+                type: Admitted
+            description: Status of the GatewayClass.
             properties:
               conditions:
-                description: Conditions describe the current conditions of the BackendPolicy.
+                default:
+                - lastTransitionTime: "1970-01-01T00:00:00Z"
+                  message: Waiting for controller
+                  reason: Waiting
+                  status: "False"
+                  type: Admitted
+                description: Conditions is the current status from the controller for this GatewayClass.
                 items:
                   description: "Condition contains details for one aspect of the current state of this API Resource. --- This struct is intended for direct use as an array at the field path .status.conditions.  For example, type FooStatus struct{     // Represents the observations of a foo's current state.     // Known .status.conditions.type are: \"Available\", \"Progressing\", and \"Degraded\"     // +patchMergeKey=type     // +patchStrategy=merge     // +listType=map     // +listMapKey=type     Conditions []metav1.Condition `json:\"conditions,omitempty\" patchStrategy:\"merge\" patchMergeKey:\"type\" protobuf:\"bytes,1,rep,name=conditions\"` \n     // other fields }"
                   properties:
