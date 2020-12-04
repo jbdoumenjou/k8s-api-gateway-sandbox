@@ -17,7 +17,10 @@ case "$1" in
   step2)
     # TODO integrate cert-manager generation
     kubectl create secret tls mysecret --cert certs/whoami.pem --key certs/whoami-key.pem
-    kubectl apply -f operator-resources
+    kubectl apply -f platform-operator-resources/
+  ;;
+  step3)
+    kubectl apply -f service-operator-resources/
   ;;
   reload)
     echo "Reload resources"

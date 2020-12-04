@@ -18,4 +18,4 @@ spec:
         kind: HTTPRoute
         selector:
           matchLabels:
-            app: foo
+            app: traefik

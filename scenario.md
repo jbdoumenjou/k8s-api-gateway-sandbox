@@ -22,24 +22,25 @@ At this point, we have a running cluster with:
 ```
 # check the cluster
 kubectl get all
-# check the GatewayClass status - Admitted true
+# check the GatewayClass
+kubectl get GatewayClasses
+# check the GatewayClass status - Should be Admitted true
 kubectl get -o json GatewayClass/my-gateway-class | jq .status
-{
-  "conditions": [
-    {
-      "lastTransitionTime": "1970-01-01T00:00:00Z",
-      "message": "Waiting for controller",
-      "reason": "Waiting",
-      "status": "Unknown",
-      "type": "InvalidParameters"
-    }
-  ]
-}
 ```
+
 # Step 2 - As Platform Operator
 
 * Define Secret for TLS 
 * Define a Gateway
+
+```
+# check the Gateways
+kubectl get Gateways
+# check the GatewayClass status - Ready False because the HTTPRoutes are not yet deployed
+kubectl get -o json gateway/my-https-gateway | jq .status 
+kubectl get -o json gateway/my-http-gateway | jq .status 
+```
+
     
 # Step 3 - As Service Operator
 
