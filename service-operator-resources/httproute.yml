@@ -12,7 +12,10 @@ spec:
     - matches:
         - path:
             type: Exact
-            value: /bar
+            value: /foo
+        - headers:
+           values:
+            h1: v1
       forwardTo:
         - serviceName: whoami
           port: 80

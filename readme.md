@@ -6,10 +6,24 @@ A simple sandbox to test the kubernetes gateway provider on Traefik.
 
 Prerequisite: Having k3d installed.
 
+This demo works by launching a shell script step by step.
+It is splitting following the role defined in the Service API specifications.
+Check the run.sh script for more details.
+
 ```shell script
-k3d cluster create mycluster --api-port 6550 -p 80:80@loadbalancer -p 8080:8080@loadbalancer -p 443:443@loadbalancer --k3s-server-arg '--no-deploy=traefik' -i rancher/k3s:v1.18.6-k3s1
-k3d image import traefik/traefik:latest -c mycluster
+# Create the stack
+./run.sh start
+# define resources and add GatewayClass
+./run.sh step0
+# Add Traefik as LoadBalancer with right RBAC
+./run.sh step1
+# Add secret & Gateway
+./run.sh step2
+# Add HTTPRoute & Whoami Service
+./run.sh step3
 
-
-kubectl get -o json gateways/my-gateway-httproute-bad-port | jq .status   
+# Show GatewayClass status 
+./run.sh gcstatus
+# Show Gateways statuses 
+./run.sh gstatus
 ```
