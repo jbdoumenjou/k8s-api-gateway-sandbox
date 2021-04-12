@@ -34,3 +34,175 @@ spec:
       targetPort: http
   selector:
     app: whoami
+
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: whoamitcp
+
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: whoamitcp
+  template:
+    metadata:
+      labels:
+        app: whoamitcp
+    spec:
+      containers:
+        - name: whoamitcp
+          image: traefik/whoamitcp
+          ports:
+            - containerPort: 8080
+              name: tcp
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: whoamitcp
+
+spec:
+  ports:
+    - protocol: TCP
+      port: 9000
+      targetPort: tcp
+  selector:
+    app: whoamitcp
+
+#---
+#apiVersion: v1
+#kind: PersistentVolume
+#metadata:
+#  name: certs-volume
+#  labels:
+#    type: local
+#spec:
+#  storageClassName: manual
+#  capacity:
+#    storage: 10Gi
+#  accessModes:
+#    - ReadWriteOnce
+#  hostPath:
+#    path: "/certs"
+#
+#---
+#apiVersion: v1
+#kind: PersistentVolumeClaim
+#metadata:
+#  name: certs-volume-claim
+#spec:
+#  storageClassName: manual
+#  accessModes:
+#    - ReadWriteOnce
+#  resources:
+#    requests:
+#      storage: 10Gi
+#---
+#kind: Deployment
+#apiVersion: apps/v1
+#metadata:
+#  name: whoamitls
+#
+#spec:
+#  replicas: 2
+#  selector:
+#    matchLabels:
+#      app: whoamitls
+#  template:
+#    metadata:
+#      labels:
+#        app: whoamitls
+#    spec:
+#      volumes:
+#        - name: certs-volume-storage
+#          persistentVolumeClaim:
+#            claimName: certs-volume-claim
+#      containers:
+#        - name: whoamitls
+#          image: traefik/whoamitls
+#          args:
+#            - certFile=/certs/whoami.pem
+#            - keyFile=/certs/whoami-key.pem
+#          ports:
+#            - containerPort: 8080
+#              name: tls
+#          volumeMounts:
+#            - mountPath: /certs
+#              name: certs-volume-claim
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: task-pv-volume
+  labels:
+    type: local
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/certs"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: task-pv-claim
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: whoamitls
+spec:
+  selector:
+    matchLabels:
+      app: whoamitls
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: whoamitls
+    spec:
+      volumes:
+        - name: task-pv-storage
+          persistentVolumeClaim:
+            claimName: task-pv-claim
+      containers:
+        - name: whoamitls
+          image: traefik/whoamitcp
+          args:
+            - --certFile=/certs/whoami.pem
+            - --keyFile=/certs/whoami-key.pem
+          ports:
+            - containerPort: 8080
+              name: tls
+          volumeMounts:
+            - mountPath: "/certs"
+              name: task-pv-storage
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: whoamitls
+
+spec:
+  ports:
+    - protocol: TCP
+      port: 9443
+      targetPort: tls
+  selector:
+    app: whoamitls

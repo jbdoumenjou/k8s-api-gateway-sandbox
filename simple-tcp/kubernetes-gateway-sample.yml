@@ -1,0 +1,41 @@
+---
+kind: GatewayClass
+apiVersion: networking.x-k8s.io/v1alpha1
+metadata:
+  name: my-gateway-class
+spec:
+  controller: traefik.io/gateway-controller
+
+---
+kind: Gateway
+apiVersion: networking.x-k8s.io/v1alpha1
+metadata:
+  name: my-tcp-gateway
+  namespace: default
+spec:
+  gatewayClassName: my-gateway-class
+  listeners:
+    - protocol: TCP
+      port: 9000
+      routes:
+        kind: TCPRoute
+        namespaces:
+          from: Same
+        selector:
+          matchLabels:
+            app: tcp-app-1-label
+
+---
+kind: TCPRoute
+apiVersion: networking.x-k8s.io/v1alpha1
+metadata:
+  name: tcp-app-1
+  namespace: default
+  labels:
+    app: tcp-app-1-label
+spec:
+  rules:
+    - forwardTo:
+        - serviceName: whoamitcp
+          port: 9000
+          weight: 1

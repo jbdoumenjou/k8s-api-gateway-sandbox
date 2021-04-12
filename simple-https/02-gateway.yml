@@ -29,7 +29,7 @@ metadata:
     app: foo
 spec:
   hostnames:
-    - "whoami"
+    - "whoami.localhost"
   rules:
     - matches:
         - path:
