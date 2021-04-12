@@ -1,0 +1,43 @@
+---
+kind: GatewayClass
+apiVersion: networking.x-k8s.io/v1alpha1
+metadata:
+  name: my-gateway-class
+spec:
+  controller: traefik.io/gateway-controller
+
+---
+kind: Gateway
+apiVersion: networking.x-k8s.io/v1alpha1
+metadata:
+  name: my-tlsp-gateway
+  namespace: default
+spec:
+  gatewayClassName: my-gateway-class
+  listeners:
+    - protocol: TLS
+      port: 9444
+      tls:
+        mode: Passthrough
+      routes:
+        kind: TLSRoute
+        namespaces:
+          from: Same
+        selector:
+          matchLabels:
+            app: tlsp-app-1-label
+
+---
+kind: TLSRoute
+apiVersion: networking.x-k8s.io/v1alpha1
+metadata:
+  name: tlsp-app-1
+  namespace: default
+  labels:
+    app: tlsp-app-1-label
+spec:
+  rules:
+    - forwardTo:
+        - serviceName: whoamitls
+          port: 9443
+          weight: 1

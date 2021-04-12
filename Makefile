@@ -17,12 +17,16 @@ start:
 		-p 443:443@loadbalancer \
 		-p 9000:9000@loadbalancer \
 		-p 9443:9443@loadbalancer \
+		-p 9444:9444@loadbalancer \
+		--volume ${PWD}/certs:/certs \
 		--k3s-server-arg '--no-deploy=traefik' \
 		-i rancher/k3s:v1.18.6-k3s1
 	k3d image import traefik/traefik:latest -c mycluster
 	kubectl create secret tls mysecret --cert certs/whoami.pem --key certs/whoami-key.pem
 	kubectl apply -f gateway-resources
 	kubectl apply -f services
+
+apply-all: apply-http apply-tcp apply-tls
 
 apply-http:
 	kubectl apply -f simple-http
