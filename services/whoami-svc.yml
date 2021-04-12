@@ -34,3 +34,40 @@ spec:
       targetPort: http
   selector:
     app: whoami
+
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: whoamitcp
+
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: whoamitcp
+  template:
+    metadata:
+      labels:
+        app: whoamitcp
+    spec:
+      containers:
+        - name: whoamitcp
+          image: traefik/whoamitcp
+          ports:
+            - containerPort: 8080
+              name: tcp
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: whoamitcp
+
+spec:
+  ports:
+    - protocol: TCP
+      port: 9000
+      targetPort: tcp
+  selector:
+    app: whoamitcp

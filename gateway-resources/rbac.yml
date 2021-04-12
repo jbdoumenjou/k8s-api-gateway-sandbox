@@ -15,27 +15,13 @@ rules:
       - list
       - watch
   - apiGroups:
-      - extensions
-      - networking.k8s.io
-    resources:
-      - ingresses
-      - ingressclasses
-    verbs:
-      - get
-      - list
-      - watch
-  - apiGroups:
-      - extensions
-    resources:
-      - ingresses/status
-    verbs:
-      - update
-  - apiGroups:
       - networking.x-k8s.io
     resources:
       - gatewayclasses
-      - gatewayclasses/status
       - gateways
+      - httproutes
+      - tcproutes
+      - tlsroutes
     verbs:
       - get
       - list
@@ -44,37 +30,11 @@ rules:
       - networking.x-k8s.io
     resources:
       - gatewayclasses/status
-    verbs:
-      - get
-      - patch
-      - update
-  - apiGroups:
-      - networking.x-k8s.io
-    resources:
       - gateways/status
-    verbs:
-      - get
-      - patch
-      - update
-  - apiGroups:
-      - networking.x-k8s.io
-    resources:
-      - httproutes
-    verbs:
-      - create
-      - delete
-      - get
-      - list
-      - patch
-      - update
-      - watch
-  - apiGroups:
-      - networking.x-k8s.io
-    resources:
       - httproutes/status
+      - tcproutes/status
+      - tlsroutes/status
     verbs:
-      - get
-      - patch
       - update
 
 ---
@@ -91,3 +51,4 @@ subjects:
   - kind: ServiceAccount
     name: traefik-controller
     namespace: default
+

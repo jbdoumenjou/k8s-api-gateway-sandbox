@@ -4,7 +4,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.4.0
+    controller-gen.kubebuilder.io/version: v0.4.1
   creationTimestamp: null
   name: tcproutes.networking.x-k8s.io
 spec:
@@ -30,7 +30,7 @@ spec:
           metadata:
             type: object
           spec:
-            description: TCPRouteSpec defines the desired state of TCPRoute
+            description: Spec defines the desired state of TCPRoute.
             properties:
               gateways:
                 default:
@@ -100,7 +100,7 @@ spec:
                             - name
                             type: object
                           port:
-                            description: "Port specifies the destination port number to use for the backend referenced by the ServiceName or BackendRef field. \n Support: Core"
+                            description: "Port specifies the destination port number to use for the backend referenced by the ServiceName or BackendRef field. If unspecified, the destination port in the request is used when forwarding to a backendRef or serviceName. \n Support: Core"
                             format: int32
                             maximum: 65535
                             minimum: 1
@@ -116,10 +116,8 @@ spec:
                             maximum: 1000000
                             minimum: 0
                             type: integer
-                        required:
-                        - port
                         type: object
-                      maxItems: 4
+                      maxItems: 16
                       minItems: 1
                       type: array
                     matches:
@@ -128,7 +126,7 @@ spec:
                         description: TCPRouteMatch defines the predicate used to match connections to a given action.
                         properties:
                           extensionRef:
-                            description: "ExtensionRef is an optional, implementation-specific extension to the \"match\" behavior.  For example, resource \"mytcproutematcher\" in group \"networking.acme.io\". If the referent cannot be found, the rule is not included in the route. The controller should raise the \"ResolvedRefs\" condition on the Gateway with the \"DegradedRoutes\" reason. The gateway status for this route should be updated with a condition that describes the error more specifically. \n Support: custom"
+                            description: "ExtensionRef is an optional, implementation-specific extension to the \"match\" behavior.  For example, resource \"mytcproutematcher\" in group \"networking.acme.io\". If the referent cannot be found, the rule is not included in the route. The controller should raise the \"ResolvedRefs\" condition on the Gateway with the \"DegradedRoutes\" reason. The gateway status for this route should be updated with a condition that describes the error more specifically. \n Support: Custom"
                             properties:
                               group:
                                 description: Group is the group of the referent.
@@ -163,15 +161,15 @@ spec:
             - rules
             type: object
           status:
-            description: TCPRouteStatus defines the observed state of TCPRoute
+            description: Status defines the current state of TCPRoute.
             properties:
               gateways:
-                description: "Gateways is a list of the Gateways that are associated with the route, and the status of the route with respect to each of these Gateways. When a Gateway selects this route, the controller that manages the Gateway should add an entry to this list when the controller first sees the route and should update the entry as appropriate when the route is modified. \n A maximum of 100 Gateways will be represented in this list. If this list is full, there may be additional Gateways using this Route that are not included in the list."
+                description: "Gateways is a list of Gateways that are associated with the route, and the status of the route with respect to each Gateway. When a Gateway selects this route, the controller that manages the Gateway must add an entry to this list when the controller first sees the route and should update the entry as appropriate when the route is modified. \n A maximum of 100 Gateways will be represented in this list. If this list is full, there may be additional Gateways using this Route that are not included in the list. An empty list means the route has not been admitted by any Gateway."
                 items:
                   description: RouteGatewayStatus describes the status of a route with respect to an associated Gateway.
                   properties:
                     conditions:
-                      description: Conditions describes the status of the route with respect to the Gateway.  For example, the "Admitted" condition indicates whether the route has been admitted or rejected by the Gateway, and why.  Note that the route's availability is also subject to the Gateway's own status conditions and listener status.
+                      description: Conditions describes the status of the route with respect to the Gateway. The "Admitted" condition must always be specified by controllers to indicate whether the route has been admitted or rejected by the Gateway, and why. Note that the route's availability is also subject to the Gateway's own status conditions and listener status.
                       items:
                         description: "Condition contains details for one aspect of the current state of this API Resource. --- This struct is intended for direct use as an array at the field path .status.conditions.  For example, type FooStatus struct{     // Represents the observations of a foo's current state.     // Known .status.conditions.type are: \"Available\", \"Progressing\", and \"Degraded\"     // +patchMergeKey=type     // +patchStrategy=merge     // +listType=map     // +listMapKey=type     Conditions []metav1.Condition `json:\"conditions,omitempty\" patchStrategy:\"merge\" patchMergeKey:\"type\" protobuf:\"bytes,1,rep,name=conditions\"` \n     // other fields }"
                         properties:

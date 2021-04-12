@@ -29,6 +29,8 @@ spec:
             - --api.insecure
             - --entrypoints.web.address=:80
             - --entrypoints.websecure.address=:443
+            - --entrypoints.tcp.address=:9000
+            - --entrypoints.tls.address=:9443
             - --experimental.kubernetesgateway
             - --providers.kubernetesgateway
           ports:
@@ -36,6 +38,10 @@ spec:
               containerPort: 80
             - name: websecure
               containerPort: 443
+            - name: tcp
+              containerPort: 9000
+            - name: tls
+              containerPort: 9443
             - name: api
               containerPort: 8080
 
@@ -60,4 +66,12 @@ spec:
       port: 443
       targetPort: websecure
       name: websecure
+    - protocol: TCP
+      port: 9000
+      targetPort: tcp
+      name: tcp
+    - protocol: TCP
+      port: 9443
+      targetPort: tls
+      name: tls
   type: LoadBalancer
